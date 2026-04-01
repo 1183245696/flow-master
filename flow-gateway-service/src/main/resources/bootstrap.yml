@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: oaplatform-gateway
+  profiles:
+    active: local
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+        file-extension: yml
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+
+server:
+  port: 8080
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+jwt:
+  secret: oaplatform-default-secret-key-must-be-at-least-256-bits-long!
+
+gateway:
+  whitelist-paths:
+    - /api/v1/auth/login
+    - /api/v1/auth/refresh
+    - /actuator/**
+    - /manage/**
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+      config:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+        file-extension: yml
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-dev}
+      port: 6379
+
+server:
+  port: 8080
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+      config:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+        file-extension: yml
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+server:
+  port: 8080

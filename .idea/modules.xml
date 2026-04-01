@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/flow-attendance-service/attendance-service.iml" filepath="$PROJECT_DIR$/flow-attendance-service/attendance-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flow-auth-service/auth-service.iml" filepath="$PROJECT_DIR$/flow-auth-service/auth-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flow-gateway-service/gateway-service.iml" filepath="$PROJECT_DIR$/flow-gateway-service/gateway-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flow-message-service/message-service.iml" filepath="$PROJECT_DIR$/flow-message-service/message-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/org-service/org-service.iml" filepath="$PROJECT_DIR$/org-service/org-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flow-user-service/user-service.iml" filepath="$PROJECT_DIR$/flow-user-service/user-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/flow-workflow-service/workflow-service.iml" filepath="$PROJECT_DIR$/flow-workflow-service/workflow-service.iml" />
+    </modules>
+  </component>
+</project>

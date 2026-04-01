@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: oaplatform-auth
+  profiles:
+    active: local
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+        file-extension: yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/oa_auth?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 1
+
+server:
+  port: 9000
+
+jwt:
+  secret: oaplatform-default-secret-key-must-be-at-least-256-bits-long!
+  access-token-ttl: 28800   # 8 hours in seconds
+  refresh-token-ttl: 604800 # 7 days in seconds
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+      config:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+        file-extension: yml
+  datasource:
+    url: jdbc:mysql://${DB_HOST:mysql-dev}:3306/oa_auth?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${DB_USER:oa}
+    password: ${DB_PASS:oa123}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-dev}
+
+server:
+  port: 9000
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+      config:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+        file-extension: yml
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/oa_auth?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${DB_USER}
+    password: ${DB_PASS}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+
+server:
+  port: 9000

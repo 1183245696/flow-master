@@ -1,0 +1,217 @@
+spring:
+  application:
+    name: oaplatform-attendance
+  profiles:
+    active: local
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  shardingsphere:
+    datasource:
+      names: ds_attendance_0,ds_attendance_1
+      ds_attendance_0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/oa_attendance_0?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: root
+        password: root
+      ds_attendance_1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/oa_attendance_1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: root
+        password: root
+    rules:
+      sharding:
+        tables:
+          att_record:
+            actual-data-nodes: ds_attendance_$->{0..1}.att_record
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: att-user-mod-2
+            key-generate-strategy:
+              column: id
+              key-generator-name: snowflake
+          # att_zone and att_rule are NOT sharded (reference/config tables)
+          att_zone:
+            actual-data-nodes: ds_attendance_0.att_zone
+          att_rule:
+            actual-data-nodes: ds_attendance_0.att_rule
+        sharding-algorithms:
+          att-user-mod-2:
+            type: MOD
+            props:
+              sharding-count: 2
+        key-generators:
+          snowflake:
+            type: SNOWFLAKE
+    props:
+      sql-show: true
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+        file-extension: yml
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 5
+
+dubbo:
+  application:
+    name: oaplatform-attendance
+  registry:
+    address: nacos://127.0.0.1:8848
+    parameters:
+      namespace: local
+  protocol:
+    name: dubbo
+    port: -1
+  scan:
+    base-packages: com.flow.attendance.rpc
+  provider:
+    timeout: 5000
+    retries: 1
+
+server:
+  port: 8085
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  shardingsphere:
+    datasource:
+      names: ds_attendance_0,ds_attendance_1
+      ds_attendance_0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST:mysql-dev}:3306/oa_attendance_0?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER:oa}
+        password: ${DB_PASS:oa123}
+      ds_attendance_1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST:mysql-dev}:3306/oa_attendance_1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER:oa}
+        password: ${DB_PASS:oa123}
+    rules:
+      sharding:
+        tables:
+          att_record:
+            actual-data-nodes: ds_attendance_$->{0..1}.att_record
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: att-user-mod-2
+          att_zone:
+            actual-data-nodes: ds_attendance_0.att_zone
+          att_rule:
+            actual-data-nodes: ds_attendance_0.att_rule
+        sharding-algorithms:
+          att-user-mod-2:
+            type: MOD
+            props:
+              sharding-count: 2
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+      config:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-dev}
+
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST:nacos-dev}:8848
+
+server:
+  port: 8085
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  shardingsphere:
+    datasource:
+      names: ds_attendance_0,ds_attendance_1
+      ds_attendance_0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST}:3306/oa_attendance_0?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER}
+        password: ${DB_PASS}
+      ds_attendance_1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST}:3306/oa_attendance_1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER}
+        password: ${DB_PASS}
+    rules:
+      sharding:
+        tables:
+          att_record:
+            actual-data-nodes: ds_attendance_$->{0..1}.att_record
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: att-user-mod-2
+          att_zone:
+            actual-data-nodes: ds_attendance_0.att_zone
+          att_rule:
+            actual-data-nodes: ds_attendance_0.att_rule
+        sharding-algorithms:
+          att-user-mod-2:
+            type: MOD
+            props:
+              sharding-count: 2
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+      config:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST}:8848
+
+server:
+  port: 8085

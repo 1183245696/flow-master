@@ -1,0 +1,138 @@
+spring:
+  application:
+    name: oaplatform-workflow
+  profiles:
+    active: local
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+        file-extension: yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/oa_workflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 4
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+flowable:
+  # Auto-deploy BPMN resources from classpath:/processes/
+  async-executor-activate: true
+  database-schema-update: true
+  # CRITICAL: Never delete old deployments — handled in service layer
+  deployment-name: oaplatform-workflow
+
+dubbo:
+  application:
+    name: oaplatform-workflow
+  registry:
+    address: nacos://127.0.0.1:8848
+    parameters:
+      namespace: local
+  protocol:
+    name: dubbo
+    port: -1
+  scan:
+    base-packages: com.flow.workflow.rpc
+  provider:
+    timeout: 10000
+    retries: 0
+
+server:
+  port: 8084
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+      config:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+  datasource:
+    url: jdbc:mysql://${DB_HOST:mysql-dev}:3306/oa_workflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${DB_USER:oa}
+    password: ${DB_PASS:oa123}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-dev}
+  rabbitmq:
+    host: ${RABBIT_HOST:rabbit-dev}
+    username: ${RABBIT_USER:oa}
+    password: ${RABBIT_PASS:oa123}
+
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST:nacos-dev}:8848
+
+server:
+  port: 8084
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+      config:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/oa_workflow?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: ${DB_USER}
+    password: ${DB_PASS}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+  rabbitmq:
+    host: ${RABBIT_HOST}
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASS}
+
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST}:8848
+
+server:
+  port: 8084

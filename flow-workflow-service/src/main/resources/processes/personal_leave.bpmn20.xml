@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://oaplatform.com/workflow">
+
+  <process id="personal_leave" name="事假申请" isExecutable="true">
+
+    <startEvent id="start" name="开始">
+      <extensionElements>
+        <flowable:formProperty id="startTime" name="开始时间" type="date" required="true"/>
+        <flowable:formProperty id="endTime"   name="结束时间" type="date" required="true"/>
+        <flowable:formProperty id="reason"    name="事假原因" type="string" required="true"/>
+      </extensionElements>
+    </startEvent>
+
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="deptLeaderApprove"/>
+
+    <userTask id="deptLeaderApprove" name="部门领导审批" flowable:assignee="${deptLeaderId}">
+      <extensionElements>
+        <flowable:taskListener event="create"
+            delegateExpression="${dynamicApproverTaskListener}"/>
+      </extensionElements>
+    </userTask>
+
+    <sequenceFlow id="flow2" sourceRef="deptLeaderApprove" targetRef="hrApprove"/>
+
+    <userTask id="hrApprove" name="HR审批" flowable:assignee="${hrUserId}">
+      <extensionElements>
+        <flowable:taskListener event="create"
+            delegateExpression="${dynamicApproverTaskListener}"/>
+      </extensionElements>
+    </userTask>
+
+    <sequenceFlow id="flow3" sourceRef="hrApprove" targetRef="end"/>
+
+    <endEvent id="end" name="结束"/>
+
+  </process>
+</definitions>

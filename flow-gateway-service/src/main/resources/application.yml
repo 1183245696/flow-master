@@ -1,0 +1,36 @@
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+    instances:
+      auth-cb:
+        baseConfig: default
+      user-cb:
+        baseConfig: default
+      org-cb:
+        baseConfig: default
+      workflow-cb:
+        baseConfig: default
+      attendance-cb:
+        baseConfig: default
+      message-cb:
+        baseConfig: default
+
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestRateLimiter
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true

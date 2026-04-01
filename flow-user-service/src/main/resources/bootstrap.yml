@@ -1,0 +1,240 @@
+spring:
+  application:
+    name: oaplatform-user
+  profiles:
+    active: local
+  config:
+    import: optional:nacos:${spring.application.name}.yml
+  # Disable Spring Boot auto datasource — ShardingSphere manages it
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # ── ShardingSphere-JDBC ──────────────────────────────────────────────────────
+  shardingsphere:
+    datasource:
+      names: ds_user_0,ds_user_1
+      ds_user_0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/oa_user_0?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: root
+        password: root
+      ds_user_1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/oa_user_1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: root
+        password: root
+    rules:
+      sharding:
+        tables:
+          sys_user:
+            actual-data-nodes: ds_user_$->{0..1}.sys_user
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: user-mod-2
+            key-generate-strategy:
+              column: id
+              key-generator-name: snowflake
+          sys_user_transfer_history:
+            actual-data-nodes: ds_user_$->{0..1}.sys_user_transfer_history
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: user-mod-2
+            key-generate-strategy:
+              column: id
+              key-generator-name: snowflake
+        sharding-algorithms:
+          user-mod-2:
+            type: MOD
+            props:
+              sharding-count: 2
+        key-generators:
+          snowflake:
+            type: SNOWFLAKE
+    props:
+      sql-show: true
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: local
+        file-extension: yml
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 2
+
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+dubbo:
+  application:
+    name: oaplatform-user
+  registry:
+    address: nacos://127.0.0.1:8848
+    parameters:
+      namespace: local
+  protocol:
+    name: dubbo
+    port: -1    # auto port
+  scan:
+    base-packages: com.flow.user.rpc
+
+server:
+  port: 8082
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  shardingsphere:
+    datasource:
+      names: ds_user_0,ds_user_1
+      ds_user_0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST:mysql-dev}:3306/oa_user_0?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER:oa}
+        password: ${DB_PASS:oa123}
+      ds_user_1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST:mysql-dev}:3306/oa_user_1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER:oa}
+        password: ${DB_PASS:oa123}
+    rules:
+      sharding:
+        tables:
+          sys_user:
+            actual-data-nodes: ds_user_$->{0..1}.sys_user
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: user-mod-2
+          sys_user_transfer_history:
+            actual-data-nodes: ds_user_$->{0..1}.sys_user_transfer_history
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: user-mod-2
+        sharding-algorithms:
+          user-mod-2:
+            type: MOD
+            props:
+              sharding-count: 2
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+      config:
+        server-addr: ${NACOS_HOST:nacos-dev}:8848
+        namespace: dev
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-dev}
+  rabbitmq:
+    host: ${RABBIT_HOST:rabbit-dev}
+    username: ${RABBIT_USER:oa}
+    password: ${RABBIT_PASS:oa123}
+
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST:nacos-dev}:8848
+
+server:
+  port: 8082
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  shardingsphere:
+    datasource:
+      names: ds_user_0,ds_user_1
+      ds_user_0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST}:3306/oa_user_0?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER}
+        password: ${DB_PASS}
+      ds_user_1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://${DB_HOST}:3306/oa_user_1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+        username: ${DB_USER}
+        password: ${DB_PASS}
+    rules:
+      sharding:
+        tables:
+          sys_user:
+            actual-data-nodes: ds_user_$->{0..1}.sys_user
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: user-mod-2
+          sys_user_transfer_history:
+            actual-data-nodes: ds_user_$->{0..1}.sys_user_transfer_history
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: user-mod-2
+        sharding-algorithms:
+          user-mod-2:
+            type: MOD
+            props:
+              sharding-count: 2
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+      config:
+        server-addr: ${NACOS_HOST}:8848
+        namespace: prod
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD}
+  rabbitmq:
+    host: ${RABBIT_HOST}
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASS}
+
+dubbo:
+  registry:
+    address: nacos://${NACOS_HOST}:8848
+
+server:
+  port: 8082

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://oaplatform.com/workflow">
+
+  <process id="expense_reimbursement" name="报销申请" isExecutable="true">
+
+    <startEvent id="start" name="开始">
+      <extensionElements>
+        <flowable:formProperty id="amount"      name="报销金额" type="long"   required="true"/>
+        <flowable:formProperty id="category"    name="费用类别" type="string" required="true"/>
+        <flowable:formProperty id="description" name="费用说明" type="string" required="false"/>
+        <flowable:formProperty id="receipts"    name="票据附件" type="string" required="false"/>
+      </extensionElements>
+    </startEvent>
+
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="managerApprove"/>
+
+    <userTask id="managerApprove" name="直属主管审批" flowable:assignee="${managerId}">
+      <extensionElements>
+        <flowable:taskListener event="create"
+            delegateExpression="${dynamicApproverTaskListener}"/>
+      </extensionElements>
+    </userTask>
+
+    <sequenceFlow id="flow2" sourceRef="managerApprove" targetRef="financeApprove"/>
+
+    <userTask id="financeApprove" name="财务审批" flowable:assignee="${financeUserId}">
+      <extensionElements>
+        <flowable:taskListener event="create"
+            delegateExpression="${dynamicApproverTaskListener}"/>
+      </extensionElements>
+    </userTask>
+
+    <sequenceFlow id="flow3" sourceRef="financeApprove" targetRef="end"/>
+
+    <endEvent id="end" name="结束"/>
+
+  </process>
+</definitions>
